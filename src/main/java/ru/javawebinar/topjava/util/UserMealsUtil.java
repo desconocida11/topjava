@@ -73,37 +73,36 @@ public class UserMealsUtil {
     public static Collector<UserMeal, ?, List<UserMealWithExcess>> groupingByCalories(int caloriesPerDay, LocalTime startTime, LocalTime endTime) {
         return Collector.<UserMeal, Map<LocalDate, Map.Entry<List<Integer>, List<UserMeal>>>, List<UserMealWithExcess>>of(
                 HashMap::new,
-                (c, e) -> {
-                    LocalDate keyLocalDate = e.getDateTime().toLocalDate();
-                    if (c.containsKey(keyLocalDate)) {
-                        c.get(keyLocalDate).getKey().add(e.getCalories());
-                        if (TimeUtil.isBetweenHalfOpen(e.getDateTime().toLocalTime(), startTime, endTime)) {
-                            c.get(keyLocalDate).getValue().add(e);
-                        }
-                    } else {
-                        Map.Entry<List<Integer>, List<UserMeal>> value =
-                                new AbstractMap.SimpleEntry<>(new ArrayList<>(), new ArrayList<>());
-                        if (TimeUtil.isBetweenHalfOpen(e.getDateTime().toLocalTime(), startTime, endTime)) {
-                            value.getValue().add(e);
-                        }
-                        value.getKey().add(e.getCalories());
-                        c.put(keyLocalDate, value);
+                (localDateMap, meal) -> {
+                    LocalDate keyLocalDate = meal.getDateTime().toLocalDate();
+                    localDateMap.computeIfAbsent(keyLocalDate, key -> new AbstractMap.SimpleEntry<>(new ArrayList<>(), new ArrayList<>()));
+                    Map.Entry<List<Integer>, List<UserMeal>> caloriesAndMealsPerDay = localDateMap.get(keyLocalDate);
+                    caloriesAndMealsPerDay.getKey().add(meal.getCalories());
+                    if (TimeUtil.isBetweenHalfOpen(meal.getDateTime().toLocalTime(), startTime, endTime)) {
+                        caloriesAndMealsPerDay.getValue().add(meal);
                     }
                 },
-                (c1, c2) -> {
-                    c1.putAll(c2);
-                    return c1;
+                (localDateMap, localDateMapComb) -> {
+                    Map<LocalDate, Map.Entry<List<Integer>, List<UserMeal>>> result = new HashMap<>();
+                    localDateMap.forEach((key, value) -> localDateMapComb.merge(key, value, (map1, map2) -> {
+                        AbstractMap.SimpleEntry<List<Integer>, List<UserMeal>> entry = new AbstractMap.SimpleEntry<>(new ArrayList<>(), new ArrayList<>());
+                        map1.getKey().forEach(map1Key -> entry.getKey().add(map1Key));
+                        map1.getValue().forEach(map1Key -> entry.getValue().add(map1Key));
+                        map2.getKey().forEach(map2Key -> entry.getKey().add(map2Key));
+                        map2.getValue().forEach(map2Key -> entry.getValue().add(map2Key));
+                        return entry;
+                    }));
+                    return result;
                 },
-                c -> {
+                localDateMap -> {
                     List<UserMealWithExcess> result = new ArrayList<>();
-                    for (Map.Entry<LocalDate, Map.Entry<List<Integer>, List<UserMeal>>> entry : c.entrySet()) {
-                        List<Integer> key = entry.getValue().getKey();
-                        if (!key.isEmpty()) {
-                            final boolean excess = key.stream()
+                    for (Map.Entry<List<Integer>, List<UserMeal>> entry : localDateMap.values()) {
+                        List<UserMeal> userMeals = entry.getValue();
+                        if (!userMeals.isEmpty()) {
+                            final boolean excess = entry.getKey().stream()
                                     .mapToInt(Integer::intValue)
                                     .sum() > caloriesPerDay;
-                            List<UserMeal> userMeals = entry.getValue().getValue();
-                            userMeals.forEach((e) -> result.add(new UserMealWithExcess(e.getDateTime(), e.getDescription(), e.getCalories(), excess)));
+                            userMeals.forEach((meal) -> result.add(new UserMealWithExcess(meal.getDateTime(), meal.getDescription(), meal.getCalories(), excess)));
                         }
                     }
                     return result;
