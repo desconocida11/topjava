@@ -36,7 +36,7 @@ public class UserMealsUtil {
     public static List<UserMealWithExcess> filteredByCycles(List<UserMeal> meals, LocalTime startTime, LocalTime endTime, int caloriesPerDay) {
         Map<LocalDate, Integer> dailyCalories = new HashMap<>();
         for (UserMeal meal : meals) {
-            LocalDate mealDate = meal.getDateTime().toLocalDate();
+            LocalDate mealDate = meal.getDate();
             int calories = meal.getCalories();
             dailyCalories.merge(mealDate, calories, Integer::sum);
         }
@@ -53,7 +53,7 @@ public class UserMealsUtil {
 
     public static List<UserMealWithExcess> filteredByStreams(List<UserMeal> meals, LocalTime startTime, LocalTime endTime, int caloriesPerDay) {
         Map<LocalDate, Integer> dailyCalories = meals.stream()
-                .collect(groupingBy(userMeal -> userMeal.getDateTime().toLocalDate(), summingInt(UserMeal::getCalories)));
+                .collect(groupingBy(UserMeal::getDate, summingInt(UserMeal::getCalories)));
 
         return meals.stream()
                 .filter(userMeal -> TimeUtil.isBetweenHalfOpen(userMeal.getDateTime().toLocalTime(), startTime, endTime))
@@ -66,7 +66,7 @@ public class UserMealsUtil {
     }
 
     public static List<UserMealWithExcess> filteredByStreams_optional(List<UserMeal> meals, LocalTime startTime, LocalTime endTime, int caloriesPerDay) {
-        return meals.stream()
+        return meals.stream().parallel()
                 .collect(groupingByCalories(caloriesPerDay, startTime, endTime));
     }
 
@@ -74,7 +74,7 @@ public class UserMealsUtil {
         return Collector.<UserMeal, Map<LocalDate, Map.Entry<List<Integer>, List<UserMeal>>>, List<UserMealWithExcess>>of(
                 HashMap::new,
                 (localDateMap, meal) -> {
-                    LocalDate keyLocalDate = meal.getDateTime().toLocalDate();
+                    LocalDate keyLocalDate = meal.getDate();
                     localDateMap.computeIfAbsent(keyLocalDate, key -> new AbstractMap.SimpleEntry<>(new ArrayList<>(), new ArrayList<>()));
                     Map.Entry<List<Integer>, List<UserMeal>> caloriesAndMealsPerDay = localDateMap.get(keyLocalDate);
                     caloriesAndMealsPerDay.getKey().add(meal.getCalories());
@@ -83,16 +83,12 @@ public class UserMealsUtil {
                     }
                 },
                 (localDateMap, localDateMapComb) -> {
-                    Map<LocalDate, Map.Entry<List<Integer>, List<UserMeal>>> result = new HashMap<>();
-                    localDateMap.forEach((key, value) -> localDateMapComb.merge(key, value, (map1, map2) -> {
-                        AbstractMap.SimpleEntry<List<Integer>, List<UserMeal>> entry = new AbstractMap.SimpleEntry<>(new ArrayList<>(), new ArrayList<>());
-                        map1.getKey().forEach(map1Key -> entry.getKey().add(map1Key));
-                        map1.getValue().forEach(map1Key -> entry.getValue().add(map1Key));
-                        map2.getKey().forEach(map2Key -> entry.getKey().add(map2Key));
-                        map2.getValue().forEach(map2Key -> entry.getValue().add(map2Key));
-                        return entry;
+                    localDateMap.forEach((key, value) -> localDateMapComb.merge(key, value, (mapEntry1, mapEntry2) -> {
+                        mapEntry1.getKey().addAll(mapEntry2.getKey());
+                        mapEntry1.getValue().addAll(mapEntry2.getValue());
+                        return mapEntry1;
                     }));
-                    return result;
+                    return localDateMapComb;
                 },
                 localDateMap -> {
                     List<UserMealWithExcess> result = new ArrayList<>();
