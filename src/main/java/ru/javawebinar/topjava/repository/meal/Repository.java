@@ -1,12 +1,10 @@
-package ru.javawebinar.topjava.storage.meal;
+package ru.javawebinar.topjava.repository.meal;
 
 import ru.javawebinar.topjava.model.Meal;
 
 import java.util.List;
 
-public interface Storage {
-    void clear();
-
+public interface Repository {
     void save(Meal meal);
 
     Meal get(long id);
@@ -16,6 +14,4 @@ public interface Storage {
     void update(Meal meal);
 
     List<Meal> getAll();
-
-    int size();
 }

@@ -11,12 +11,9 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.atomic.AtomicLong;
 import java.util.stream.Collectors;
 
 public class MealsUtil {
-    private static final AtomicLong counter = new AtomicLong(0);
-
     public static final int CALORIES_PER_DAY = 2000;
 
     public static final List<Meal> MEALS_INIT = Arrays.asList(
@@ -51,9 +48,5 @@ public class MealsUtil {
 
     private static MealTo createTo(Meal meal, boolean excess) {
         return new MealTo(meal.getDateTime(), meal.getDescription(), meal.getCalories(), excess, meal.getId());
-    }
-
-    public static long getCounter() {
-        return counter.incrementAndGet();
     }
 }

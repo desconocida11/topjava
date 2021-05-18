@@ -1,4 +1,4 @@
-package ru.javawebinar.topjava.storage.meal;
+package ru.javawebinar.topjava.repository.meal;
 
 import ru.javawebinar.topjava.model.Meal;
 
@@ -6,19 +6,23 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicLong;
 
-public class MapStorage implements Storage {
+public class MapRepository implements Repository {
 
     private final Map<Long, Meal> storage = new ConcurrentHashMap<>();
 
-    @Override
-    public void clear() {
-        storage.clear();
+    private final AtomicLong counter = new AtomicLong(0);
+
+    private long getCounter() {
+        return counter.incrementAndGet();
     }
 
     @Override
     public void save(Meal meal) {
-        storage.putIfAbsent(meal.getId(), meal);
+        long id = getCounter();
+        meal.setId(id);
+        storage.putIfAbsent(id, meal);
     }
 
     @Override
@@ -39,10 +43,5 @@ public class MapStorage implements Storage {
     @Override
     public List<Meal> getAll() {
         return new ArrayList<>(storage.values());
-    }
-
-    @Override
-    public int size() {
-        return storage.size();
     }
 }
