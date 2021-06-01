@@ -5,7 +5,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import ru.javawebinar.topjava.model.User;
 import ru.javawebinar.topjava.service.UserService;
-import ru.javawebinar.topjava.web.SecurityUtil;
 
 import java.util.List;
 
@@ -31,7 +30,6 @@ public abstract class AbstractUserController {
     public User create(User user) {
         log.info("create {}", user);
         checkNew(user);
-        user.setId(SecurityUtil.authUserId());
         return service.create(user);
     }
 

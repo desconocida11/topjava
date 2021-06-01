@@ -25,7 +25,7 @@ public class SpringMain {
             MealRestController mealRestController = appCtx.getBean(MealRestController.class);
             MealsUtil.meals.forEach(mealRestController::create);
             List<MealTo> all =
-                    mealRestController.getFiltered(LocalDate.of(2020, 1, 30), LocalTime.of(10, 0), LocalDate.of(2020, 1, 31), LocalTime.of(16, 0));
+                    mealRestController.getFiltered(LocalDate.of(2020, 1, 31), LocalTime.of(13, 0), null, null);
             if (all != null) {
                 all.forEach(System.out::println);
             }

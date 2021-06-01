@@ -4,6 +4,7 @@ import org.springframework.stereotype.Repository;
 import ru.javawebinar.topjava.model.Meal;
 import ru.javawebinar.topjava.repository.MealRepository;
 
+import java.time.LocalDate;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -11,6 +12,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Repository
 public class InMemoryMealRepository implements MealRepository {
@@ -30,21 +32,43 @@ public class InMemoryMealRepository implements MealRepository {
     }
 
     @Override
-    public synchronized boolean delete(int id, Integer userId) {
-        return repository.get(userId).remove(id) != null;
+    public boolean delete(int id, Integer userId) {
+        return getUserMeals(userId).remove(id) != null;
     }
 
     @Override
     public Meal get(int id, Integer userId) {
-        return repository.get(userId).get(id);
+        return getUserMeals(userId).get(id);
     }
 
     @Override
     public Collection<Meal> getAll(Integer userId) {
-        return repository.getOrDefault(userId, new HashMap<>()).values()
-                .stream()
+        return getMealStream(userId)
                 .sorted(Comparator.comparing(Meal::getDateTime, Comparator.reverseOrder()))
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public Collection<Meal> getAllFiltered(Integer userId, LocalDate startDate, LocalDate endDate) {
+        return getMealStream(userId)
+                .filter(meal -> {
+                    LocalDate mealDate = meal.getDate();
+                    LocalDate end = endDate == null ? LocalDate.MAX : endDate;
+                    LocalDate start = startDate == null ? LocalDate.MIN : startDate;
+                    return !(mealDate.isAfter(end) || mealDate.isBefore(start));
+                })
+                .sorted(Comparator.comparing(Meal::getDateTime, Comparator.reverseOrder()))
+                .collect(Collectors.toList());
+    }
+
+    private Stream<Meal> getMealStream(Integer userId) {
+        return getUserMeals(userId).values()
+                .stream();
+    }
+
+    private Map<Integer, Meal> getUserMeals(Integer userId) {
+        Map<Integer, Meal> mealMap = repository.get(userId);
+        return mealMap != null ? mealMap : new HashMap<>();
     }
 }
 
