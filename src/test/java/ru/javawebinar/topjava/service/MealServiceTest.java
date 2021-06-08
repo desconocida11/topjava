@@ -24,6 +24,7 @@ import static ru.javawebinar.topjava.UserTestData.USER_ID;
 
 @ContextConfiguration({
         "classpath:spring/spring-app.xml",
+        "classpath:spring/spring-jdbc.xml",
         "classpath:spring/spring-db.xml"
 })
 @RunWith(SpringRunner.class)
@@ -42,7 +43,7 @@ public class MealServiceTest {
     @Test
     public void get() {
         Meal meal = service.get(USER_MEAL, USER_ID);
-        assertMealMatch(meal, getUserMeal());
+        assertMealMatch(meal, USER_MEAL_1);
     }
 
     @Test
@@ -71,7 +72,7 @@ public class MealServiceTest {
         LocalDate startDate = LocalDate.of(2020, 1, 31);
         LocalDate endDate = LocalDate.of(2020, 2, 1);
         List<Meal> meals = service.getBetweenInclusive(startDate, endDate, ADMIN_ID);
-        assertMealMatch(meals, adminMeals);
+        assertMealMatch(meals, ADMIN_MEAL_1, ADMIN_MEAL_2, ADMIN_MEAL_3, ADMIN_MEAL_4);
     }
 
     @Test
@@ -84,7 +85,7 @@ public class MealServiceTest {
     @Test
     public void getAll() {
         List<Meal> all = service.getAll(USER_ID);
-        assertMealMatch(all, userMeals);
+        assertMealMatch(all, USER_MEAL_1, USER_MEAL_2, USER_MEAL_3);
     }
 
     @Test
