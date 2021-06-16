@@ -19,7 +19,8 @@ public class TestMatcher<T> {
         assertThat(actual).usingRecursiveComparison().ignoringFields(fieldsToIgnore).isEqualTo(expected);
     }
 
-    public void assertMatch(Iterable<T> actual, T... expected) {
+    @SafeVarargs
+    public final void assertMatch(Iterable<T> actual, T... expected) {
         assertMatch(actual, Arrays.asList(expected));
     }
 

@@ -1,5 +1,7 @@
 package ru.javawebinar.topjava.service;
 
+import org.junit.AfterClass;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,6 +31,9 @@ public class MealServiceTest {
 
     @Autowired
     private MealService service;
+
+    @Rule
+    public static final StopwatchUtil stopwatchUtil = new StopwatchUtil();
 
     @Test
     public void delete() {
@@ -108,5 +113,10 @@ public class MealServiceTest {
     @Test
     public void getBetweenWithNullDates() {
         MEAL_MATCHER.assertMatch(service.getBetweenInclusive(null, null, USER_ID), meals);
+    }
+
+    @AfterClass
+    public static void afterClass() {
+
     }
 }
