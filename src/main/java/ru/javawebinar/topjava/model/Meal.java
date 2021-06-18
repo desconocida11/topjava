@@ -16,8 +16,8 @@ import java.time.LocalTime;
         @NamedQuery(name = Meal.UPDATE, query = "UPDATE Meal m SET m.dateTime=:date_time, m.calories=:calories, m.description=:description WHERE m.id=:id AND m.user.id=:user_id"),
         @NamedQuery(name = Meal.DELETE, query = "DELETE FROM Meal m WHERE m.id=:id AND m.user.id=:user_id"),
         @NamedQuery(name = Meal.GET_BETWEEN_HALF_OPEN,
-                query = "SELECT m.id, m.description, m.calories, m.dateTime FROM Meal m WHERE m.user.id=:user_id AND m.dateTime >=:start_date AND m.dateTime <:end_date ORDER BY m.dateTime DESC"),
-        @NamedQuery(name = Meal.GET_ALL, query = "SELECT m.id, m.description, m.calories, m.dateTime FROM Meal m WHERE m.user.id=:user_id ORDER BY m.dateTime DESC"),
+                query = "SELECT m FROM Meal m WHERE m.user.id=:user_id AND m.dateTime >=:start_date AND m.dateTime <:end_date ORDER BY m.dateTime DESC"),
+        @NamedQuery(name = Meal.GET_ALL, query = "SELECT m FROM Meal m WHERE m.user.id=:user_id ORDER BY m.dateTime DESC"),
 })
 @Entity
 @Table(name="meals", uniqueConstraints = {

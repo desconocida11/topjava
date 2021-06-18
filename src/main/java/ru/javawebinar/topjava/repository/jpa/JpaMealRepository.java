@@ -8,9 +8,7 @@ import ru.javawebinar.topjava.repository.MealRepository;
 
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
-import javax.persistence.TypedQuery;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 
 @Repository
@@ -29,13 +27,14 @@ public class JpaMealRepository implements MealRepository {
             em.persist(meal);
             return meal;
         } else {
-            return em.createNamedQuery(Meal.UPDATE)
-                    .setParameter("id", meal.id())
-                    .setParameter("user_id", userId)
-                    .setParameter("calories", meal.getCalories())
-                    .setParameter("description", meal.getDescription())
-                    .setParameter("date_time", meal.getDateTime())
-                    .executeUpdate() != 0 ? meal : null;
+            Meal meal1 = em.find(Meal.class, meal.id());
+            if (meal1.getUser().getId() != userId) {
+                return null;
+            }
+            meal1.setCalories(meal.getCalories());
+            meal1.setDescription(meal.getDescription());
+            meal1.setDateTime(meal.getDateTime());
+            return em.merge(meal1);
         }
     }
 
@@ -50,41 +49,26 @@ public class JpaMealRepository implements MealRepository {
 
     @Override
     public Meal get(int id, int userId) {
-        List<Object[]> resultList = em.createNamedQuery(Meal.GET, Object[].class)
-                .setParameter("id", id)
-                .setParameter("user_id", userId)
-                .getResultList();
-        if (resultList.size() == 0) {
+        Meal meal = em.find(Meal.class, id);
+        if (meal == null) {
             return null;
         }
-        return createMeal(resultList.get(0));
+        return meal.getUser().getId() == userId ? meal : null;
     }
 
     @Override
     public List<Meal> getAll(int userId) {
-        TypedQuery<Object[]> query = em.createNamedQuery(Meal.GET_ALL, Object[].class)
-                .setParameter("user_id", userId);
-        return collectQueryToList(query);
+        return em.createNamedQuery(Meal.GET_ALL, Meal.class)
+                .setParameter("user_id", userId)
+                .getResultList();
     }
 
     @Override
     public List<Meal> getBetweenHalfOpen(LocalDateTime startDateTime, LocalDateTime endDateTime, int userId) {
-        TypedQuery<Object[]> query = em.createNamedQuery(Meal.GET_BETWEEN_HALF_OPEN, Object[].class)
+        return em.createNamedQuery(Meal.GET_BETWEEN_HALF_OPEN, Meal.class)
                 .setParameter("user_id", userId)
                 .setParameter("start_date", startDateTime)
-                .setParameter("end_date", endDateTime);
-        return collectQueryToList(query);
-    }
-
-    private List<Meal> collectQueryToList(TypedQuery<Object[]> query) {
-        List<Meal> result = new ArrayList<>();
-        for (Object[] o : query.getResultList()) {
-            result.add(createMeal(o));
-        }
-        return result;
-    }
-
-    private Meal createMeal(Object[] o) {
-        return new Meal((int) o[0], (LocalDateTime) o[3], (String) o[1], (int) o[2]);
+                .setParameter("end_date", endDateTime)
+                .getResultList();
     }
 }
