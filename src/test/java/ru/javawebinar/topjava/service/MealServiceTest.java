@@ -46,7 +46,11 @@ public class MealServiceTest {
         String message = String.format("Test %s %s, spent %d milliseconds",
                 testName, status, testRuntime);
         logger.log(Level.FINE, message);
-        testsRuntime.append("\n").append(String.format("%30s", testName)).append(" - ").append(testRuntime);
+        testsRuntime.append("\n")
+                .append(String.format("%30s", testName))
+                .append(" - ")
+                .append(testRuntime)
+                .append(" ms");
     }
 
     @Rule
