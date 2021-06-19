@@ -1,7 +1,10 @@
 package ru.javawebinar.topjava.service;
 
+import org.junit.AfterClass;
 import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.Stopwatch;
+import org.junit.runner.Description;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DataAccessException;
@@ -14,6 +17,9 @@ import ru.javawebinar.topjava.util.exception.NotFoundException;
 
 import java.time.LocalDate;
 import java.time.Month;
+import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 import static org.junit.Assert.assertThrows;
 import static ru.javawebinar.topjava.MealTestData.*;
@@ -31,8 +37,25 @@ public class MealServiceTest {
     @Autowired
     private MealService service;
 
+    private static final Logger logger = Logger.getLogger(MealServiceTest.class.getName());
+    private static final StringBuilder testsRuntime = new StringBuilder();
+
+    private static void logInfo(Description description, String status, long nanos) {
+        String testName = description.getMethodName();
+        long testRuntime = TimeUnit.NANOSECONDS.toMillis(nanos);
+        String message = String.format("Test %s %s, spent %d milliseconds",
+                testName, status, testRuntime);
+        logger.log(Level.FINE, message);
+        testsRuntime.append("\n").append(String.format("%30s", testName)).append(" - ").append(testRuntime);
+    }
+
     @Rule
-    public final StopwatchUtil stopwatchUtil = new StopwatchUtil();
+    public Stopwatch stopwatch = new Stopwatch() {
+        @Override
+        protected void finished(long nanos, Description description) {
+            logInfo(description, "finished", nanos);
+        }
+    };
 
     @Test
     public void delete() {
@@ -112,5 +135,10 @@ public class MealServiceTest {
     @Test
     public void getBetweenWithNullDates() {
         MEAL_MATCHER.assertMatch(service.getBetweenInclusive(null, null, USER_ID), meals);
+    }
+
+    @AfterClass
+    public static void afterClass() {
+        logger.fine(testsRuntime.toString());
     }
 }
