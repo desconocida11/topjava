@@ -26,4 +26,13 @@
         <url-pattern>/meals</url-pattern>
     </servlet-mapping>
 
+<!--    <context-param>-->
+<!--        <param-name>ActiveProfileInitializer</param-name>-->
+<!--        <param-value>ru.javawebinar.topjava.web.ActiveProfileInitializer</param-value>-->
+<!--    </context-param>-->
+
+<!--    <listener>-->
+<!--        <listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>-->
+<!--    </listener>-->
+
 </web-app>
