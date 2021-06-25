@@ -2,22 +2,34 @@ package ru.javawebinar.topjava.repository.datajpa;
 
 import org.springframework.stereotype.Repository;
 import ru.javawebinar.topjava.model.Meal;
+import ru.javawebinar.topjava.model.User;
 import ru.javawebinar.topjava.repository.MealRepository;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public class DataJpaMealRepository implements MealRepository {
 
     private final CrudMealRepository crudRepository;
 
-    public DataJpaMealRepository(CrudMealRepository crudRepository) {
+    private final CrudUserRepository crudUserRepository;
+
+    public DataJpaMealRepository(CrudMealRepository crudRepository, CrudUserRepository crudUserRepository) {
         this.crudRepository = crudRepository;
+        this.crudUserRepository = crudUserRepository;
     }
 
     @Override
     public Meal save(Meal meal, int userId) {
+        Optional<User> userOptional = crudUserRepository.findById(userId);
+        if (userOptional.isPresent()) {
+            User user = userOptional.get();
+            meal.setUser(user);
+        } else {
+            return null;
+        }
         if (meal.isNew()) {
             return crudRepository.save(meal);
         } else if (get(meal.id(), userId) == null) {

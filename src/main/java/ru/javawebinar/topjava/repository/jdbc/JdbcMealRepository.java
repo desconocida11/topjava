@@ -16,7 +16,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 @Repository
-public abstract class JdbcMealRepository implements MealRepository {
+public abstract class JdbcMealRepository<DT> implements MealRepository {
 
     protected static final RowMapper<Meal> ROW_MAPPER = BeanPropertyRowMapper.newInstance(Meal.class);
 
@@ -38,7 +38,12 @@ public abstract class JdbcMealRepository implements MealRepository {
 
     @Override
     public Meal save(Meal meal, int userId) {
-        MapSqlParameterSource map = getMapSql(meal, userId);
+        MapSqlParameterSource map = new MapSqlParameterSource()
+                .addValue("id", meal.getId())
+                .addValue("description", meal.getDescription())
+                .addValue("calories", meal.getCalories())
+                .addValue("date_time", getConvertedDateTime(meal.getDateTime()))
+                .addValue("user_id", userId);
         if (meal.isNew()) {
             Number newId = insertMeal.executeAndReturnKey(map);
             meal.setId(newId.intValue());
@@ -53,7 +58,7 @@ public abstract class JdbcMealRepository implements MealRepository {
         return meal;
     }
 
-    protected abstract MapSqlParameterSource getMapSql(Meal meal, int userId);
+    protected abstract DT getConvertedDateTime(LocalDateTime dateTime);
 
     @Override
     public boolean delete(int id, int userId) {
@@ -74,5 +79,9 @@ public abstract class JdbcMealRepository implements MealRepository {
     }
 
     @Override
-    public abstract List<Meal> getBetweenHalfOpen(LocalDateTime startDateTime, LocalDateTime endDateTime, int userId);
+    public List<Meal> getBetweenHalfOpen(LocalDateTime startDateTime, LocalDateTime endDateTime, int userId) {
+        return jdbcTemplate.query(
+                "SELECT * FROM meals WHERE user_id=?  AND date_time >=  ? AND date_time < ? ORDER BY date_time DESC",
+                ROW_MAPPER, userId, getConvertedDateTime(startDateTime), getConvertedDateTime(endDateTime));
+    }
 }
