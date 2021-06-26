@@ -58,8 +58,6 @@ public abstract class JdbcMealRepository<DT> implements MealRepository {
         return meal;
     }
 
-    protected abstract DT getConvertedDateTime(LocalDateTime dateTime);
-
     @Override
     public boolean delete(int id, int userId) {
         return jdbcTemplate.update("DELETE FROM meals WHERE id=? AND user_id=?", id, userId) != 0;
@@ -84,4 +82,6 @@ public abstract class JdbcMealRepository<DT> implements MealRepository {
                 "SELECT * FROM meals WHERE user_id=?  AND date_time >=  ? AND date_time < ? ORDER BY date_time DESC",
                 ROW_MAPPER, userId, getConvertedDateTime(startDateTime), getConvertedDateTime(endDateTime));
     }
+
+    protected abstract DT getConvertedDateTime(LocalDateTime dateTime);
 }

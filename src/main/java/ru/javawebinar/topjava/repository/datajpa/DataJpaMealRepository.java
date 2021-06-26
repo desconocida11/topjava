@@ -35,7 +35,7 @@ public class DataJpaMealRepository implements MealRepository {
         } else if (get(meal.id(), userId) == null) {
             return null;
         }
-        return crudRepository.update(meal.getCalories(), meal.getDateTime(), meal.getDescription(), meal.getId(), userId) == 1 ? meal : null;
+        return crudRepository.save(meal);
     }
 
     @Override
@@ -45,7 +45,8 @@ public class DataJpaMealRepository implements MealRepository {
 
     @Override
     public Meal get(int id, int userId) {
-        return crudRepository.getByIdAndUserId(id, userId);
+        return crudRepository.getByIdAndUserIdWithUser(id, userId);
+//        return crudRepository.getByIdAndUserId(id, userId);
     }
 
     @Override

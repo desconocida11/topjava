@@ -20,7 +20,7 @@ public class SpringMain {
 //        System.setProperty("spring.profiles.active", Profiles.HSQL_DB + ", " + Profiles.JDBC);
         String[] configs = {"spring/spring-app.xml", "spring/spring-db.xml"};
         try (ClassPathXmlApplicationContext appCtx = new ClassPathXmlApplicationContext(configs, false)) {
-            appCtx.getEnvironment().setActiveProfiles(Profiles.REPOSITORY_IMPLEMENTATION, Profiles.HSQL_DB);
+            appCtx.getEnvironment().setActiveProfiles(Profiles.REPOSITORY_IMPLEMENTATION, Profiles.getDb());
             appCtx.refresh();
             System.out.println("Bean definition names: " + Arrays.toString(appCtx.getBeanDefinitionNames()));
             AdminRestController adminUserController = appCtx.getBean(AdminRestController.class);
