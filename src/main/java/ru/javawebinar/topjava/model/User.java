@@ -50,9 +50,9 @@ public class User extends AbstractNamedEntity {
     @ElementCollection(fetch = FetchType.EAGER)
     private Set<Role> roles;
 
-    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
-    @JoinColumn(name = "user_id")
+    @OneToMany(mappedBy="user", cascade = CascadeType.REMOVE, orphanRemoval = true)
     @OrderBy("dateTime desc")
+    @NotNull
     private List<Meal> meals = new ArrayList<>();
 
     @Column(name = "calories_per_day", nullable = false, columnDefinition = "int default 2000")
