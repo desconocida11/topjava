@@ -1,5 +1,6 @@
 package ru.javawebinar.topjava.service;
 
+import org.junit.Assume;
 import org.junit.Before;
 import org.junit.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,13 +28,20 @@ public abstract class AbstractUserServiceTest extends AbstractServiceTest {
     @Autowired
     private CacheManager cacheManager;
 
-    @Autowired
+    @Autowired(required = false)
     protected JpaUtil jpaUtil;
 
     @Before
     public void setup() {
         cacheManager.getCache("users").clear();
-        jpaUtil.clear2ndLevelHibernateCache();
+//        ActiveProfiles declaredAnnotation = this.getClass().getDeclaredAnnotation(ActiveProfiles.class);
+//        if (!Arrays.stream(declaredAnnotation.value()).anyMatch(Profiles.JDBC::equals)) {
+        if (!isJdbc()) {
+            jpaUtil.clear2ndLevelHibernateCache();
+        }
+//        if (jpaUtil != null) {
+//            jpaUtil.clear2ndLevelHibernateCache();
+//        }
     }
 
     @Test
@@ -95,6 +103,7 @@ public abstract class AbstractUserServiceTest extends AbstractServiceTest {
 
     @Test
     public void createWithException() throws Exception {
+        Assume.assumeFalse(isJdbc());
         validateRootCause(ConstraintViolationException.class, () -> service.create(new User(null, "  ", "mail@yandex.ru", "password", Role.USER)));
         validateRootCause(ConstraintViolationException.class, () -> service.create(new User(null, "User", "  ", "password", Role.USER)));
         validateRootCause(ConstraintViolationException.class, () -> service.create(new User(null, "User", "mail@yandex.ru", "  ", Role.USER)));
