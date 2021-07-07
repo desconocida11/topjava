@@ -14,9 +14,12 @@ import ru.javawebinar.topjava.repository.UserRepository;
 
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
+@Transactional(readOnly = true)
 @Repository
 public class JdbcUserRepository implements UserRepository {
 
@@ -43,11 +46,9 @@ public class JdbcUserRepository implements UserRepository {
     public User save(User user) {
         BeanPropertySqlParameterSource parameterSource = new BeanPropertySqlParameterSource(user);
         List<Role> roles = new ArrayList<>(user.getRoles());
-        String queryRoles;
         if (user.isNew()) {
             Number newKey = insertUser.executeAndReturnKey(parameterSource);
             user.setId(newKey.intValue());
-            queryRoles = "INSERT INTO user_roles (role, user_id) VALUES(?, ?)";
         } else {
             int update = namedParameterJdbcTemplate.update("""
                        UPDATE users SET name=:name, email=:email, password=:password, 
@@ -56,17 +57,15 @@ public class JdbcUserRepository implements UserRepository {
             if (update == 0) {
                 return null;
             }
-            queryRoles = "UPDATE user_roles SET role = ? WHERE user_id = ?";
+            jdbcTemplate.update("DELETE FROM user_roles WHERE user_id=?", user.id());
         }
-        int[] batchUpdate = jdbcTemplate.batchUpdate(queryRoles,
+        jdbcTemplate.batchUpdate("INSERT INTO user_roles (role, user_id) VALUES(?, ?)",
                 new BatchPreparedStatementSetter() {
-
                     public void setValues(PreparedStatement ps, int i)
                             throws SQLException {
                         ps.setString(1, roles.get(i).name());
                         ps.setInt(2, user.id());
                     }
-
                     public int getBatchSize() {
                         return roles.size();
                     }
@@ -82,28 +81,19 @@ public class JdbcUserRepository implements UserRepository {
 
     @Override
     public User get(int id) {
-        PreparedStatementCreator preparedStatementCreator = connection -> {
-            PreparedStatement prepareStatement =
-                    connection.prepareStatement("SELECT u.id, u.name, u.email, u.password, u.enabled, u.calories_per_day, u.registered, r.role " +
-                            " FROM users u JOIN user_roles r ON r.user_id = u.id WHERE u.id=?");
-            prepareStatement.setInt(1, id);
-            return prepareStatement;
-        };
-
-        List<User> users = jdbcTemplate.query(preparedStatementCreator, getResultSetExtractor());
+        List<User> users = jdbcTemplate.query("SELECT u.id, u.name, u.email, u.password, u.enabled, u.calories_per_day, u.registered, r.role " +
+                        " FROM users u JOIN user_roles r ON r.user_id = u.id WHERE u.id=?",
+                preparedStatement -> preparedStatement.setInt(1, id),
+                getResultSetExtractor());
         return DataAccessUtils.singleResult(users);
     }
 
     @Override
     public User getByEmail(String email) {
-        PreparedStatementCreator preparedStatementCreator = connection -> {
-            PreparedStatement prepareStatement =
-                    connection.prepareStatement("SELECT u.id, u.name, u.email, u.password, u.enabled, u.calories_per_day, u.registered, r.role " +
-                            " FROM users u JOIN user_roles r ON r.user_id = u.id WHERE u.email=?");
-            prepareStatement.setString(1, email);
-            return prepareStatement;
-        };
-        List<User> users = jdbcTemplate.query(preparedStatementCreator, getResultSetExtractor());
+        List<User> users = jdbcTemplate.query("SELECT u.id, u.name, u.email, u.password, u.enabled, u.calories_per_day, u.registered, r.role " +
+                        " FROM users u JOIN user_roles r ON r.user_id = u.id WHERE u.email=?",
+                preparedStatement -> preparedStatement.setString(1, email),
+                getResultSetExtractor());
         return DataAccessUtils.singleResult(users);
     }
 
@@ -111,33 +101,29 @@ public class JdbcUserRepository implements UserRepository {
     public List<User> getAll() {
         PreparedStatementCreator preparedStatementCreator =
                 connection -> connection.prepareStatement("SELECT u.id, u.name, u.email, u.password, u.enabled, u.calories_per_day, u.registered, r.role " +
-                " FROM users u JOIN user_roles r ON r.user_id = u.id");
-        List<User> users = jdbcTemplate.query(preparedStatementCreator, getResultSetExtractor());
-        return users;
+                        " FROM users u JOIN user_roles r ON r.user_id = u.id");
+        return jdbcTemplate.query(preparedStatementCreator, getResultSetExtractor());
     }
 
     private ResultSetExtractor<List<User>> getResultSetExtractor() {
         return rs -> {
-            Map<Integer, List<User>> map = new HashMap<>();
+            Map<Integer, User> users = new HashMap<>();
             while (rs.next()) {
                 int userId = rs.getInt("id");
-                map.computeIfAbsent(userId, k -> new ArrayList<>());
-                if (map.get(userId).size() == 0) {
-                    User user = new User(userId,
-                            rs.getString("name"),
-                            rs.getString("email"),
-                            rs.getString("password"),
-                            Role.valueOf(rs.getString("role")));
-                    user.setCaloriesPerDay(rs.getInt("calories_per_day"));
-                    user.setEnabled(rs.getBoolean("enabled"));
-                    user.setRegistered(rs.getDate("registered"));
-                    map.get(userId).add(user);
-                } else {
-                    Set<Role> roles = map.get(userId).get(0).getRoles();
-                    roles.add(Role.valueOf(rs.getString("role")));
-                }
+                User user = new User(userId,
+                        rs.getString("name"),
+                        rs.getString("email"),
+                        rs.getString("password"),
+                        Role.valueOf(rs.getString("role")));
+                user.setCaloriesPerDay(rs.getInt("calories_per_day"));
+                user.setEnabled(rs.getBoolean("enabled"));
+                user.setRegistered(rs.getDate("registered"));
+                users.merge(userId, user, (v1, v2) -> {
+                    v2.getRoles().addAll(v1.getRoles());
+                    return v2;
+                });
             }
-            return map.values().stream().flatMap(List::stream).collect(Collectors.toList());
+            return new ArrayList<>(users.values());
         };
     }
 }

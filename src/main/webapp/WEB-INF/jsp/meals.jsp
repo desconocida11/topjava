@@ -13,7 +13,7 @@
     <h3><a href="index.jsp"><spring:message code="app.home"/></a></h3>
     <hr/>
     <h2><spring:message code="meal.title"/></h2>
-    <form method="get" action="meals">
+    <form method="get" action="meals/filter">
         <input type="hidden" name="action" value="filter">
         <dl>
             <dt><spring:message code="meal.fromdate"/>:</dt>

@@ -31,17 +31,17 @@ public class MealController extends AbstractMealController {
 
     @GetMapping
     public String getMeals(HttpServletRequest request, Model model) {
-        List<MealTo> meals;
-        String action = request.getParameter("action");
-        if ("filter".equals(action)) {
-            LocalDate startDate = parseLocalDate(request.getParameter("startDate"));
-            LocalDate endDate = parseLocalDate(request.getParameter("endDate"));
-            LocalTime startTime = parseLocalTime(request.getParameter("startTime"));
-            LocalTime endTime = parseLocalTime(request.getParameter("endTime"));
-            meals = getBetween(startDate, startTime, endDate, endTime);
-        } else {
-            meals = getAll();
-        }
+        model.addAttribute("meals", getAll());
+        return "meals";
+    }
+
+    @GetMapping(value = "filter")
+    public String getMealsFiltered(HttpServletRequest request, Model model) {
+        LocalDate startDate = parseLocalDate(request.getParameter("startDate"));
+        LocalDate endDate = parseLocalDate(request.getParameter("endDate"));
+        LocalTime startTime = parseLocalTime(request.getParameter("startTime"));
+        LocalTime endTime = parseLocalTime(request.getParameter("endTime"));
+        List<MealTo> meals = getBetween(startDate, startTime, endDate, endTime);
         model.addAttribute("meals", meals);
         return "meals";
     }
