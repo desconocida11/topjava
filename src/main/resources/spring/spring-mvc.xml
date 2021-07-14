@@ -28,6 +28,29 @@
     <!--  all resources inside folder src/main/webapp/resources are mapped so they can be referred to inside JSP files -->
     <mvc:resources mapping="/resources/**" location="/resources/"/>
 
+
+    <bean id="localdateformatter" class="ru.javawebinar.topjava.web.formatters.LocalDateFormatter"/>
+<!--    <bean id="localdateconverter" class="ru.javawebinar.topjava.web.formatters.LocalDateConverter"/>-->
+    <bean id="localtimeformatter" class="ru.javawebinar.topjava.web.formatters.LocalTimeFormatter"/>
+<!--    <bean id="localtimeconverter" class="ru.javawebinar.topjava.web.formatters.LocalTimeConverter"/>-->
+
+    <mvc:annotation-driven conversion-service="conversionService"/>
+    <bean id="conversionService"
+          class="org.springframework.format.support.FormattingConversionServiceFactoryBean">
+        <property name="formatters">
+            <set>
+                <ref bean="localdateformatter"/>
+                <ref bean="localtimeformatter"/>
+            </set>
+        </property>
+<!--        <property name="converters">-->
+<!--            <set>-->
+<!--                <ref bean="localdateconverter"/>-->
+<!--                <ref bean="localtimeconverter"/>-->
+<!--            </set>-->
+<!--        </property>-->
+    </bean>
+
     <bean class="org.springframework.web.servlet.view.InternalResourceViewResolver"
           p:prefix="/WEB-INF/jsp/"
           p:suffix=".jsp"/>
