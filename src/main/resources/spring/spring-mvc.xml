@@ -7,7 +7,7 @@
 
     <bean class="ru.javawebinar.topjava.web.json.JacksonObjectMapper" id="objectMapper" factory-method="getMapper"/>
 
-    <mvc:annotation-driven>
+    <mvc:annotation-driven conversion-service="conversionService">
         <mvc:message-converters>
             <bean class="org.springframework.http.converter.json.MappingJackson2HttpMessageConverter">
                 <property name="objectMapper" ref="objectMapper"/>
@@ -21,6 +21,8 @@
                 </property>
             </bean>
         </mvc:message-converters>
+<!--        <mvc:annotation-driven conversion-service="conversionService"/>-->
+
     </mvc:annotation-driven>
 
     <context:component-scan base-package="ru.javawebinar.**.web"/>
@@ -34,7 +36,6 @@
     <bean id="localtimeformatter" class="ru.javawebinar.topjava.web.formatters.LocalTimeFormatter"/>
 <!--    <bean id="localtimeconverter" class="ru.javawebinar.topjava.web.formatters.LocalTimeConverter"/>-->
 
-    <mvc:annotation-driven conversion-service="conversionService"/>
     <bean id="conversionService"
           class="org.springframework.format.support.FormattingConversionServiceFactoryBean">
         <property name="formatters">
