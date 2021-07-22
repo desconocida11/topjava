@@ -12,10 +12,10 @@ $(function () {
             "paging": false,
             "info": true,
             "columns": [
-                {
-                    "data": "excess",
-                    "visible": false
-                },
+                // {
+                //     "data": "excess",
+                //     "visible": false
+                // },
                 {
                     "data": "dateTime"
                 },

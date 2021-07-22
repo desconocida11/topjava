@@ -68,7 +68,6 @@
 <%--                        <td><a href="meals/delete?id=${meal.id}"><spring:message code="common.delete"/></a></td>--%>
 
                         <td><a class="delete"><span class="fa fa-remove"></span></a></td>
-<%--                        <td><a class="delete"><span class="fa fa-remove"></span></a></td>--%>
                     </tr>
                 </c:forEach>
             </table>
@@ -86,12 +85,11 @@
             </div>
             <div class="modal-body">
                 <form id="detailsForm">
-                    <input type="hidden" name="id" value="${meal.id}">
+                    <input type="hidden" name="id" value="id">
 
                     <div class="form-group">
                         <label for="dateTime" class="col-form-label"><spring:message code="meal.dateTime"/></label>
                         <input type="datetime-local" class="form-control" id="dateTime" name="dateTime"
-                               value="${meal.dateTime}"
                                placeholder="<spring:message code="meal.dateTime"/>" required>
                     </div>
 
@@ -99,7 +97,6 @@
                         <label for="description" class="col-form-label"><spring:message
                                 code="meal.description"/></label>
                         <input type="text" class="form-control" id="description" name="description"
-                               value="${meal.description}"
                                placeholder="<spring:message code="meal.description"/>" required>
                     </div>
 
