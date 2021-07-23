@@ -9,7 +9,9 @@
 <script type="text/javascript" src="resources/js/topjava.meals.js" defer></script>
 <jsp:include page="fragments/bodyHeader.jsp"/>
 
-<section>
+<%--<section>--%>
+<div class="jumbotron pt-4">
+    <div class="container">
     <h3><spring:message code="meal.title"/></h3>
 
     <form method="get" action="meals/filter">
@@ -36,14 +38,13 @@
     <%--    <a href="meals/create"><spring:message code="meal.add"/></a>--%>
     <%--    <hr>--%>
 
-    <div class="jumbotron pt-4">
-        <div class="container">
+<%--    <div class="jumbotron pt-4">--%>
+<%--        <div class="container">--%>
             <button class="btn btn-primary" onclick="add()">
                 <span class="fa fa-plus"></span>
                 <spring:message code="common.add"/>
             </button>
-            <table class="table table-striped" id="datatable">
-                <%--    <table border="1" cellpadding="8" cellspacing="0">--%>
+            <table class="table table-striped" id="mealtable">
                 <thead>
                 <tr>
                     <th><spring:message code="meal.dateTime"/></th>
@@ -54,9 +55,10 @@
                 </tr>
                 </thead>
                 <c:forEach items="${meals}" var="meal">
-                    <jsp:useBean id="meal" scope="page" type="ru.javawebinar.topjava.to.MealTo"/>
+                    <jsp:useBean id="meal" type="ru.javawebinar.topjava.to.MealTo"/>
                     <tr data-mealExcess="${meal.excess}"  id="${meal.id}">
                         <td>
+<%--                            <c:out value="${fn:formatDateTime(meal.dateTime)}"/>--%>
                                 <%--${meal.dateTime.toLocalDate()} ${meal.dateTime.toLocalTime()}--%>
                                 <%--<%=TimeUtil.toString(meal.getDateTime())%>--%>
                                 <%--${fn:replace(meal.dateTime, 'T', ' ')}--%>
@@ -73,7 +75,7 @@
             </table>
         </div>
     </div>
-</section>
+<%--</section>--%>
 
 
 <div class="modal fade" tabindex="-1" id="editRow">
@@ -94,8 +96,7 @@
                     </div>
 
                     <div class="form-group">
-                        <label for="description" class="col-form-label"><spring:message
-                                code="meal.description"/></label>
+                        <label for="description" class="col-form-label"><spring:message code="meal.description"/></label>
                         <input type="text" class="form-control" id="description" name="description"
                                placeholder="<spring:message code="meal.description"/>" required>
                     </div>

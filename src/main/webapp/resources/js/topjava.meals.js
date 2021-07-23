@@ -1,4 +1,4 @@
-const mealAjaxUrl = "meals/";
+const mealAjaxUrl = "profile/meals/";
 
 // https://stackoverflow.com/a/5064235/548473
 const ctx = {
@@ -8,14 +8,10 @@ const ctx = {
 // $(document).ready(function () {
 $(function () {
     makeEditable(
-        $("#datatable").DataTable({
+        $("#mealtable").DataTable({
             "paging": false,
             "info": true,
             "columns": [
-                // {
-                //     "data": "excess",
-                //     "visible": false
-                // },
                 {
                     "data": "dateTime"
                 },
