@@ -39,3 +39,36 @@ $(function () {
         })
     );
 });
+
+function filter() {
+    const form = $("#filterForm");
+    $.ajax({
+        type: "GET",
+        url: ctx.ajaxUrl + "filter",
+        data: form.serialize()
+    }).done(function (data) {
+        ctx.datatableApi.clear().rows.add(data).draw();
+        successNoty("Data filtered");
+    });
+}
+
+function updateTable() {
+    let isFiltered = false;
+    $('#filterForm').find(":input").each(function() {
+        if($(this).val() !== "")
+            isFiltered = true;
+    });
+    if (isFiltered === true) {
+        filter();
+    }
+    else {
+        $.get(ctx.ajaxUrl, function (data) {
+            ctx.datatableApi.clear().rows.add(data).draw();
+        });
+    }
+}
+
+function cancelFilter() {
+    $('#filterForm').find(":input").val("");
+    updateTable();
+}
