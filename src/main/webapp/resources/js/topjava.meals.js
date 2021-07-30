@@ -12,6 +12,15 @@ const ctx = {
     }
 }
 
+function saveMeal() {
+    const form = $("#detailsForm");
+    const calories = form.find("input[name='calories']");
+    if (calories.length !== 0 && calories[0].value.toString() === "") {
+        calories.val(0);
+    }
+    save();
+}
+
 function clearFilter() {
     $("#filter")[0].reset();
     $.get("profile/meals/", updateTableByData);
@@ -64,11 +73,7 @@ $(function () {
                 ]
             ],
             "createdRow": function (row, data, dataIndex) {
-                if (data.excess) {
-                    $(row).attr("data-mealExcess", true);
-                } else {
-                    $(row).attr("data-mealExcess", false);
-                }
+                $(row).attr("data-mealExcess", data.excess);
             }
         })
     );
