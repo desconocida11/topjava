@@ -13,11 +13,11 @@ const ctx = {
 }
 
 function saveMeal() {
-    const form = $("#detailsForm");
-    const calories = form.find("input[name='calories']");
-    if (calories.length !== 0 && calories[0].value.toString() === "") {
-        calories.val(0);
-    }
+    // const form = $("#detailsForm");
+    // const calories = form.find("input[name='calories']");
+    // if (calories.length !== 0 && calories[0].value.toString() === "") {
+    //     calories.val(0);
+    // }
     save();
 }
 
