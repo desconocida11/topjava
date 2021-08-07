@@ -2,10 +2,18 @@
 <%@ taglib prefix="spring" uri="http://www.springframework.org/tags" %>
 <%@ taglib prefix="sec" uri="http://www.springframework.org/security/tags" %>
 <%@taglib prefix="form" uri="http://www.springframework.org/tags/form" %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
 
 <nav class="navbar navbar-dark bg-dark py-0">
     <div class="container">
-        <a href="meals" class="navbar-brand"><img src="resources/images/icon-meal.png"> <spring:message code="app.title"/></a>
+        <a href="meals" class="navbar-brand"><img src="resources/images/icon-meal.png"> <spring:message
+                code="app.title"/></a>
+        <a href='${pageContext.request.contextPath}?locale=${pageContext.response.locale == 'en_EN' ? 'ru_RU' : 'en_EN'}'>
+            <spring:message code="common.locale"/>
+        </a>  <!-- (1) -->
+<%--        <a href='${pageContext.request.contextPath}?locale=ru_RU'>Russian</a>--%>
+
+
         <sec:authorize access="isAuthenticated()">
             <form:form class="form-inline my-2" action="logout" method="post">
                 <sec:authorize access="hasRole('ADMIN')">

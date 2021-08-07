@@ -2,6 +2,8 @@ package ru.javawebinar.topjava.web;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.support.MessageSourceAccessor;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -20,12 +22,29 @@ import ru.javawebinar.topjava.util.exception.NotFoundException;
 
 import javax.servlet.http.HttpServletRequest;
 
+import java.util.Map;
+
 import static ru.javawebinar.topjava.util.exception.ErrorType.*;
 
 @RestControllerAdvice(annotations = RestController.class)
 @Order(Ordered.HIGHEST_PRECEDENCE + 5)
 public class ExceptionInfoHandler {
     private static Logger log = LoggerFactory.getLogger(ExceptionInfoHandler.class);
+
+    @Autowired
+    private final MessageSourceAccessor messageSourceAccessor;
+
+    private static final String EXCEPTION_DUPLICATE_EMAIL = "exception.user.duplicateEmail";
+
+    private static final String EXCEPTION_DUPLICATE_DATETIME = "exception.meal.duplicateDateTime";
+
+    private static final Map<String, String> CONSTRAINS_I18N_MAP = Map.of(
+            "users_unique_email_idx", EXCEPTION_DUPLICATE_EMAIL,
+            "meals_unique_user_datetime_idx", EXCEPTION_DUPLICATE_DATETIME);
+
+    public ExceptionInfoHandler(MessageSourceAccessor messageSourceAccessor) {
+        this.messageSourceAccessor = messageSourceAccessor;
+    }
 
     //  http://stackoverflow.com/a/22358422/548473
     @ResponseStatus(HttpStatus.UNPROCESSABLE_ENTITY)
@@ -53,12 +72,20 @@ public class ExceptionInfoHandler {
     }
 
     //    https://stackoverflow.com/questions/538870/should-private-helper-methods-be-static-if-they-can-be-static
-    private static ErrorInfo logAndGetErrorInfo(HttpServletRequest req, Exception e, boolean logException, ErrorType errorType) {
+    private ErrorInfo logAndGetErrorInfo(HttpServletRequest req, Exception e, boolean logException, ErrorType errorType) {
         Throwable rootCause = ValidationUtil.getRootCause(e);
+
         if (logException) {
             log.error(errorType + " at request " + req.getRequestURL(), rootCause);
         } else {
             log.warn("{} at request  {}: {}", errorType, req.getRequestURL(), rootCause.toString());
+        }
+
+        String lowerCaseMsg = rootCause.getMessage().toLowerCase();
+        for (Map.Entry<String, String> entry : CONSTRAINS_I18N_MAP.entrySet()) {
+            if (lowerCaseMsg.contains(entry.getKey())) {
+                return new ErrorInfo(req.getRequestURL(), DATA_ERROR, messageSourceAccessor.getMessage(entry.getValue()));
+            }
         }
         return new ErrorInfo(req.getRequestURL(), errorType, rootCause.toString());
     }

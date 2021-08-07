@@ -2,14 +2,20 @@ package ru.javawebinar.topjava.util;
 
 
 import org.springframework.core.NestedExceptionUtils;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.lang.NonNull;
 import org.springframework.validation.BindingResult;
+import org.springframework.validation.FieldError;
 import ru.javawebinar.topjava.HasId;
+import ru.javawebinar.topjava.util.exception.ErrorInfo;
+import ru.javawebinar.topjava.util.exception.ErrorType;
 import ru.javawebinar.topjava.util.exception.IllegalRequestDataException;
 import ru.javawebinar.topjava.util.exception.NotFoundException;
 
 import javax.validation.*;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -75,6 +81,14 @@ public class ValidationUtil {
     public static Throwable getRootCause(@NonNull Throwable t) {
         Throwable rootCause = NestedExceptionUtils.getRootCause(t);
         return rootCause != null ? rootCause : t;
+    }
+
+    public static ResponseEntity<ErrorInfo> getErrorInfo(BindingResult result) {
+        List<ErrorInfo> errors = new ArrayList<>();
+        for (FieldError fieldError: result.getFieldErrors()) {
+            errors.add(new ErrorInfo(fieldError.getField(), ErrorType.VALIDATION_ERROR, fieldError.getField() + ": " + fieldError.getDefaultMessage()));
+        }
+        return new ResponseEntity<>(errors.get(0), HttpStatus.UNPROCESSABLE_ENTITY);
     }
 
     public static ResponseEntity<String> getErrorResponse(BindingResult result) {

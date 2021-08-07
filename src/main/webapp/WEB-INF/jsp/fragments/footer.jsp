@@ -4,5 +4,6 @@
 <footer class="footer">
     <div class="container">
         <span class="text-muted"><spring:message code="app.footer"/></span>
+        Current Locale : ${pageContext.response.locale}
     </div>
 </footer>
