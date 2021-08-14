@@ -1,5 +1,6 @@
 package ru.javawebinar.topjava.web.user;
 
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.ModelMap;
 import org.springframework.validation.BindingResult;
@@ -22,11 +23,16 @@ public class ProfileUIController extends AbstractUserController {
     }
 
     @PostMapping
-    public String updateProfile(@Valid UserTo userTo, SessionStatus status) {
-        super.update(userTo, SecurityUtil.authUserId());
-        SecurityUtil.get().update(userTo);
-        status.setComplete();
-        return "redirect:/meals";
+    public String updateProfile(@Valid UserTo userTo, SessionStatus status, BindingResult result) {
+        try {
+            super.update(userTo, SecurityUtil.authUserId());
+            SecurityUtil.get().update(userTo);
+            status.setComplete();
+            return "redirect:/meals";
+        } catch (DataIntegrityViolationException exception) {
+            result.rejectValue("email", "exception.user.duplicateEmail");
+            return "profile";
+        }
     }
 
     @GetMapping("/register")
@@ -42,9 +48,14 @@ public class ProfileUIController extends AbstractUserController {
             model.addAttribute("register", true);
             return "profile";
         } else {
-            super.create(userTo);
-            status.setComplete();
-            return "redirect:/login?message=app.registered&username=" + userTo.getEmail();
+            try {
+                super.create(userTo);
+                status.setComplete();
+                return "redirect:/login?message=app.registered&username=" + userTo.getEmail();
+            } catch (DataIntegrityViolationException exception) {
+                result.rejectValue("email", "exception.user.duplicateEmail");
+                return "profile";
+            }
         }
     }
 }
