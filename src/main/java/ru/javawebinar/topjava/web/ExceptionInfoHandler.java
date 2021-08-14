@@ -9,6 +9,9 @@ import org.springframework.core.annotation.Order;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.validation.BindException;
+import org.springframework.validation.FieldError;
+import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
@@ -21,7 +24,8 @@ import ru.javawebinar.topjava.util.exception.IllegalRequestDataException;
 import ru.javawebinar.topjava.util.exception.NotFoundException;
 
 import javax.servlet.http.HttpServletRequest;
-
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 import static ru.javawebinar.topjava.util.exception.ErrorType.*;
@@ -81,12 +85,18 @@ public class ExceptionInfoHandler {
             log.warn("{} at request  {}: {}", errorType, req.getRequestURL(), rootCause.toString());
         }
 
+        List<String> messages = new ArrayList<>();
         String lowerCaseMsg = rootCause.getMessage().toLowerCase();
         for (Map.Entry<String, String> entry : CONSTRAINS_I18N_MAP.entrySet()) {
             if (lowerCaseMsg.contains(entry.getKey())) {
-                return new ErrorInfo(req.getRequestURL(), DATA_ERROR, messageSourceAccessor.getMessage(entry.getValue()));
+                messages.add(messageSourceAccessor.getMessage(entry.getValue()));
             }
         }
-        return new ErrorInfo(req.getRequestURL(), errorType, rootCause.toString());
+        try {
+            for (ObjectError objectError : ((BindException) rootCause).getAllErrors()) {
+                messages.add(((FieldError) objectError).getField() + ": " + objectError.getDefaultMessage() + "\n");
+            }
+        } catch (ClassCastException ignored) {}
+        return new ErrorInfo(req.getRequestURL(), errorType, messages.toArray(new String[0]));
     }
 }
